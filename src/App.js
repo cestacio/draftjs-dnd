@@ -1,46 +1,13 @@
-// import React, { Component } from 'react';
-// import { EditorState } from 'draft-js';
-// import Editor from 'draft-js-plugins-editor';
-// import createEmojiPlugin from 'draft-js-emoji-plugin';
-// import 'draft-js-emoji-plugin/lib/plugin.css';
-
-// const emojiPlugin = createEmojiPlugin();
-
-// const { EmojiSuggestions } = emojiPlugin;
-
-// class App extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       editorState: EditorState.createEmpty()
-//     };
-//   }
-
-//   onChange = editorState => {
-//     this.setState({
-//       editorState
-//     });
-//   };
-
-//   render() {
-//     return (
-//       <div>
-//         <h1>hello world</h1>
-//         <Editor
-//           editorState={this.state.editorState}
-//           onChange={this.onChange}
-//           plugins={[emojiPlugin]}
-//         />
-//         <EmojiSuggestions />
-//       </div>
-//     );
-//   }
-// }
-
-// export default App;
-
 import React, { Component } from 'react';
-import { convertFromRaw, EditorState } from 'draft-js';
+import {
+  convertFromRaw,
+  EditorState,
+  ContentState,
+  Modifier,
+  Entity
+} from 'draft-js';
+
+import { OrderedMap, Map } from 'immutable';
 
 import Editor, { composeDecorators } from 'draft-js-plugins-editor';
 
@@ -61,6 +28,7 @@ const decorator = composeDecorators(
 const imagePlugin = createImagePlugin({ decorator });
 
 const plugins = [blockDndPlugin, focusPlugin, imagePlugin];
+// const plugins = [blockDndPlugin, imagePlugin];
 
 /* eslint-disable */
 const initialState = {
@@ -120,19 +88,70 @@ export default class App extends Component {
   };
 
   onChange = editorState => {
-    this.setState({
-      editorState
+    this.setState(state => {
+      console.log(
+        'in onchange, old=',
+        state.editorState.getCurrentContent(),
+        state.editorState.getCurrentContent().getPlainText()
+      );
+      console.log(
+        'in onchange, new=',
+        editorState.getCurrentContent(),
+        editorState.getCurrentContent().getPlainText()
+      );
+      return { editorState };
     });
   };
 
   focus = () => {
-    this.editor.focus();
+    console.log('dfdjhfjksdhfjkds jkdsfkdsf kdsfjkds hfjkds jkds fkk fh wtf');
+    // this.editor.focus();
+  };
+
+  joel = () => {
+    const block = this.state.editorState.getCurrentContent().getFirstBlock();
+    const blocks = [
+      ...this.state.editorState
+        .getCurrentContent()
+        .getBlockMap()
+        . (),
+      block
+    ];
+
+    // how do we make a block map from this block?
+
+    // const heyContentState = ContentState.createFromText('HEY EVERYBODY');
+    // const bmapFragment = heyContentState.getBlockMap();
+
+    const afterContentState = ContentState.createFromBlockArray(blocks);
+
+    // const currContentState = this.state.editorState.getCurrentContent();
+    // const currSelectionState = this.state.editorState.getSelection();
+    // const afterContentState = Modifier.replaceWithFragment(
+    //   currContentState,
+    //   currSelectionState,
+    //   bmapFragment
+    // );
+    const newEditorState = EditorState.push(
+      this.state.editorState,
+      // afterContentState,
+      afterContentState
+      // 'replace-text'
+      // 'move-block'
+    );
+    console.log(newEditorState.getCurrentContent().getPlainText());
+    this.setState({
+      editorState: newEditorState
+    });
+    return true;
   };
 
   render() {
     return (
       <div>
         <div className={editorStyles.editor} onClick={this.focus}>
+          <button onClick={this.joel}>yo</button>
+
           <Editor
             editorState={this.state.editorState}
             onChange={this.onChange}
