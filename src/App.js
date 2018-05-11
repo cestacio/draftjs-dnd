@@ -110,13 +110,17 @@ export default class App extends Component {
 
   joel = () => {
     const block = this.state.editorState.getCurrentContent().getFirstBlock();
-    const blocks = [
-      ...this.state.editorState
-        .getCurrentContent()
-        .getBlockMap()
-        . (),
+    let blocks = this.state.editorState.getCurrentContent().getBlocksAsArray();
+    blocks = blocks.slice(1, blocks.length);
+
+    console.log('these are the blocks 1: ', blocks);
+
+    blocks = [
+      ...blocks,
+      // ['zzzzz', block]    <-- back when it was map
       block
     ];
+    console.log('these are the blocks: ', blocks);
 
     // how do we make a block map from this block?
 
