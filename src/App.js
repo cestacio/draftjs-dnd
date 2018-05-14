@@ -3,11 +3,12 @@ import {
   convertFromRaw,
   EditorState,
   ContentState,
+  SelectionState,
   Modifier,
   Entity
 } from 'draft-js';
 
-import { OrderedMap, Map } from 'immutable';
+import { OrderedMap, Map, List } from 'immutable';
 
 import Editor, { composeDecorators } from 'draft-js-plugins-editor';
 
@@ -29,6 +30,8 @@ const imagePlugin = createImagePlugin({ decorator });
 
 const plugins = [blockDndPlugin, focusPlugin, imagePlugin];
 // const plugins = [blockDndPlugin, imagePlugin];
+
+var anchorKey;
 
 /* eslint-disable */
 const initialState = {
@@ -89,16 +92,22 @@ export default class App extends Component {
 
   onChange = editorState => {
     this.setState(state => {
-      console.log(
-        'in onchange, old=',
-        state.editorState.getCurrentContent(),
-        state.editorState.getCurrentContent().getPlainText()
-      );
-      console.log(
-        'in onchange, new=',
-        editorState.getCurrentContent(),
-        editorState.getCurrentContent().getPlainText()
-      );
+      // console.log(
+      //   'in onchange, old=',
+      //   state.editorState.getCurrentContent(),
+      //   state.editorState.getCurrentContent().getPlainText()
+      // );
+      // console.log(
+      //   'in onchange, new=',
+      //   editorState.getCurrentContent(),
+      //   editorState.getCurrentContent().getPlainText()
+      // );
+
+      var selectionState = editorState.getSelection();
+      anchorKey = selectionState.getAnchorKey();
+      // var currentContent = editorState.getCurrentContent();
+      // var currentContentBlock = currentContent.getBlockForKey(anchorKey);
+      // debugger;
       return { editorState };
     });
   };
@@ -109,26 +118,36 @@ export default class App extends Component {
   };
 
   joel = () => {
-    const block = this.state.editorState.getCurrentContent().getFirstBlock();
-    let blocks = this.state.editorState.getCurrentContent().getBlocksAsArray();
-    blocks = blocks.slice(1, blocks.length);
+    // const block = this.state.editorState.getCurrentContent().getFirstBlock();
+    let blocks1 = this.state.editorState.getCurrentContent().getBlocksAsArray();
+    let blockAnchorKey = this.state.editorState.getSelection().anchorKey;
+    const block = this.state.editorState
+      .getCurrentContent()
+      .getBlockForKey(blockAnchorKey);
+    const blockIdx = blocks1.indexOf(block);
 
-    console.log('these are the blocks 1: ', blocks);
+    // const el = list.get(blockIdx)
+    // const lst2 = blocks.set(blockIdx, blocks.get(blockIdx + 1));
+    // const lst3 = blocks.set(blockIdx + 1, block);
 
-    blocks = [
-      ...blocks,
-      // ['zzzzz', block]    <-- back when it was map
-      block
-    ];
-    console.log('these are the blocks: ', blocks);
+    let blocks2 = blocks1.slice();
+    blocks2[blockIdx] = blocks1[blockIdx + 1];
+    blocks2[blockIdx + 1] = blocks1[blockIdx];
+
+    // blocks = blocks.slice(0, blockIdx).concat(blocks.slice(blockIdx + 1));
+    // debugger;
+    // blocks = [
+    //   ...blocks,
+    //   // ['zzzzz', block]    <-- back when it was map
+    //   block
+    // ];
 
     // how do we make a block map from this block?
 
     // const heyContentState = ContentState.createFromText('HEY EVERYBODY');
     // const bmapFragment = heyContentState.getBlockMap();
 
-    const afterContentState = ContentState.createFromBlockArray(blocks);
-
+    const afterContentState = ContentState.createFromBlockArray(blocks2);
     // const currContentState = this.state.editorState.getCurrentContent();
     // const currSelectionState = this.state.editorState.getSelection();
     // const afterContentState = Modifier.replaceWithFragment(
@@ -143,7 +162,10 @@ export default class App extends Component {
       // 'replace-text'
       // 'move-block'
     );
-    console.log(newEditorState.getCurrentContent().getPlainText());
+    // console.log(
+    //   'this is newEditorState: ',
+    //   newEditorState.getCurrentContent().getPlainText()
+    // );
     this.setState({
       editorState: newEditorState
     });
